@@ -163,7 +163,18 @@ Tip: the final dataset should have as many rows as the the old one.
 
 
 ```{r}
-
+#Create a subset only for visit 1
+d_v1 = d[d$VISIT==1,]
+#Rename the variables
+d_v1 = plyr::rename(d_v1, c(ADOS = "ADOSx", MullenRaw = "nonVerbalIQ", ExpressiveLangRaw = "verbalIQ"))
+#Merge them again. Aparrently, the merge function will then duplicate the value for all the visits.
+d=merge(d,
+         select(d_v1,SUBJ, ADOSx, nonVerbalIQ, verbalIQ),
+         by = "SUBJ")
+#Delete old columns
+d=subset(d, select = -c(ADOS, MullenRaw, ExpressiveLangRaw))
+#Rename Ados
+d= plyr:: rename(d, c(ADOSx="ADOS"))
 ```
 
 Now, we are almost ready to actually start working with the data. However, here are some additional finishing touches:
@@ -177,7 +188,16 @@ Tip: as.numeric() might be a useful function, but not alone.
 Tip: Google "how to rename levels in R".
 
 ```{r}
+#Make ID into numbers
+as.numeric(as.factor(d$SUBJ))
 
+#Make visit numeric
+d$VISIT=as.numeric(d$VISIT)
+
+#Change names of genders and Diagnosis
+d$Gender = as.factor(d$Gender)
+d$Gender = revalue(d$Gender, c("1" = "F", "2" = "M"))
+d$Diagnosis = revalue(d$Diagnosis, c("A" = "ASD", "B" = "TD"))
 
 ```
 
