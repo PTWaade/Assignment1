@@ -73,7 +73,7 @@ Tip: Look into the package data.table, or google "how to rename variables in R"
 ```{r}
 #Rename variables
 library(plyr)
-d_dem = rename(d_dem, c(Child.ID = "SUBJ", Visit = "VISIT"))
+d_dem = plyr::rename(d_dem, c(Child.ID = "SUBJ", Visit = "VISIT"))
 
 ```
 
@@ -83,6 +83,7 @@ Tip: There is a package called stringr, which will be very handy for you also in
 ```{r}
 library(stringr)
 d_LU$VISIT=str_extract(d_LU$VISIT,"\\d")
+d_token$VISIT=str_extract(d_token$VISIT,"\\d")
 
 ```
 
@@ -98,13 +99,10 @@ Tip: You will have to do identical work for both data sets, so to save time on t
 
 
 ```{r}
-
-?sapply()
-?gsub()
-?mutate()
-library(car)
-?recode()
-
+#Remove all periods
+d_dem$SUBJ=gsub("\\.","",d_dem$SUBJ)
+d_LU$SUBJ=gsub("\\.","",d_LU$SUBJ)
+d_token$SUBJ=gsub("\\.","",d_token$SUBJ)
 
 ```
 
@@ -123,7 +121,23 @@ The variables we need are: Child.ID, Visit, Ethnicity, Diagnosis, Gender, Age, A
 It would be smart to rename the MullenRaw and ExpressiveLangRaw into something you can remember (i.e. nonVerbalIQ, verbalIQ)
 
 ```{r}
+#Make subsets of datasets
+library(tidyverse)
 
+dsel_dem = select(d_dem, SUBJ, VISIT, Ethnicity, Diagnosis, Gender, Age, ADOS, MullenRaw, ExpressiveLangRaw)
+
+dsel_token = select(d_token, SUBJ, VISIT, types_MOT, types_CHI, tokens_MOT, tokens_CHI)
+
+dsel_LU = select(d_LU, SUBJ, VISIT, MOT_MLU, MOT_LUstd, CHI_MLU, CHI_LUstd)
+
+### One-line version. looks terrible.
+#d=
+  #merge(
+   # select(d_token, SUBJ, VISIT, types_MOT, types_CHI, tokens_MOT, tokens_CHI),
+ # merge(
+ # select(d_dem, SUBJ, VISIT, Ethnicity, Diagnosis, Gender, Age, ADOS, MullenRaw, ExpressiveLangRaw),
+  #select(d_LU, SUBJ, VISIT, MOT_MLU, MOT_LUstd, CHI_MLU, CHI_LUstd)
+#))
 
 ```
 
@@ -134,7 +148,8 @@ Tip: Merge only works for two data frames at the time.
 Tip: Check the number of observations in the datasets before and after merging. What is going on?
 
 ```{r}
-
+d = merge(dsel_dem,dsel_token)
+d = merge(dsel_LU, d)
 ```
 
 Are we done yet?
