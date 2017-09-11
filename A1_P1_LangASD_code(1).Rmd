@@ -82,6 +82,7 @@ Tip: There is a package called stringr, which will be very handy for you also in
 
 ```{r}
 library(stringr)
+#Remove all non-digits from visit numbers
 d_LU$VISIT=str_extract(d_LU$VISIT,"\\d")
 d_token$VISIT=str_extract(d_token$VISIT,"\\d")
 
@@ -99,7 +100,7 @@ Tip: You will have to do identical work for both data sets, so to save time on t
 
 
 ```{r}
-#Remove all periods
+#Remove all periods from subject ID's
 d_dem$SUBJ=gsub("\\.","",d_dem$SUBJ)
 d_LU$SUBJ=gsub("\\.","",d_LU$SUBJ)
 d_token$SUBJ=gsub("\\.","",d_token$SUBJ)
@@ -121,7 +122,7 @@ The variables we need are: Child.ID, Visit, Ethnicity, Diagnosis, Gender, Age, A
 It would be smart to rename the MullenRaw and ExpressiveLangRaw into something you can remember (i.e. nonVerbalIQ, verbalIQ)
 
 ```{r}
-#Make subsets of datasets
+#Make subsets of datasets with interesting variables
 library(tidyverse)
 
 dsel_dem = select(d_dem, SUBJ, VISIT, Ethnicity, Diagnosis, Gender, Age, ADOS, MullenRaw, ExpressiveLangRaw)
@@ -148,6 +149,7 @@ Tip: Merge only works for two data frames at the time.
 Tip: Check the number of observations in the datasets before and after merging. What is going on?
 
 ```{r}
+#Merge subsets into one datafile
 d = merge(dsel_dem,dsel_token)
 d = merge(dsel_LU, d)
 ```
@@ -175,6 +177,7 @@ d=merge(d,
 d=subset(d, select = -c(ADOS, MullenRaw, ExpressiveLangRaw))
 #Rename Ados
 d= plyr:: rename(d, c(ADOSx="ADOS"))
+
 ```
 
 Now, we are almost ready to actually start working with the data. However, here are some additional finishing touches:
@@ -188,15 +191,17 @@ Tip: as.numeric() might be a useful function, but not alone.
 Tip: Google "how to rename levels in R".
 
 ```{r}
-#Make ID into numbers    #######Problem########
-as.numeric(as.factor(d$SUBJ))
+#Make ID into numbers
+d$SUBJ = as.numeric(as.factor(d$SUBJ))
 
 #Make visit numeric
 d$VISIT=as.numeric(d$VISIT)
 
-#Change names of genders and Diagnosis
-d$Gender = as.factor(d$Gender)
-d$Gender = revalue(d$Gender, c("1" = "F", "2" = "M"))
+#Make gender into a facotr and rename it
+d$Gender = as.factor(d$Gender) %>%
+  revalue(c("1" = "F", "2" = "M"))
+
+#And change the name of the diagnosis
 d$Diagnosis = revalue(d$Diagnosis, c("A" = "ASD", "B" = "TD"))
 
 ```
@@ -267,7 +272,7 @@ d_temp = d%>%
   #Arrange trials in descending order for tokens_SCHI
   arrange(-tokens_CHI) 
 
-#Choose top one
+#Choose top subject
 d_temp$SUBJ[1] 
 
 
@@ -278,7 +283,7 @@ d_temp = d%>%
   #Arrange trials in ascending order for tokens_SCHI
   arrange(tokens_CHI) 
 
-#Choose top one
+#Choose top subject
 d_temp$SUBJ[1] 
 
 ```
@@ -310,27 +315,19 @@ USING MUTATE, SUMMARISE and PIPES
 3. The solution to task above enables us to assess the average amount of words produced by each child. Why don't we just use these average values to describe the language production of the children? What is the advantage of keeping all the data?
 
 ```{r}
+#Note: I am a bit unsure how to interpret these tasks, but have tried. 
+#My interpretation is that the first task asks me to for each visit find the mean number of words spoken by all the kids, and the second task to for each kid find the mean number of words spoken at a visit
 
--------------
-  # 1.a.ambiguous question so if i take all words spoken by both mom and kid then whole average
-d_temp = d %>% 
+### 1
+d = d %>% 
+  group_by(VISIT) %>% 
+  mutate(avgWordsForVisit = mean(tokens_CHI))
+
+### 2
+d = d %>% 
   group_by(SUBJ) %>% 
-  mutate(avgWords_MOMCHI = mean(tokens_CHI+tokens_MOT))
-# 1.b. all words all visits for KID
-D-temp = d %>% 
-  group_by(SUBJ) %>% 
-  mutate(avgWords_CHI = mean(tokens_CHI))
+  mutate(avgWordsForSubject = mean(tokens_CHI))
 
-#Also an option... not split ub by kids..
-d_temp = mutate(d, avgWords_CHI = mean(tokens_CHI))
-
-# 2. add a column containing the mean amount of words produced by each trial across all visits. HINT: group by Child.ID
-d_temp = d_temp %>%
-  group_by(VISIT) %>%
-  mutate(avg_Words_perTrial = mean(tokens_CHI))
-
-# 3. The solution to task above enables us to assess the average amount of words produced by each child. Why don't we just use these average values to describe the language production of the children? What is the advantage of keeping all the data?
-# So I'm not sure how correct my solution is but I think keeping all the other data is good when you want to include more variables into the ASD model than just words per trial (to get a more accurate model)
------------------
-
+### 3
+#Isn't this the problem with all kinds of averaging. While you may, technically, not lose any information, there is information and analyses which it might be difficult or impossible to do. Say you wanna look at each kid's change during the visits, connect that to the diagnosis - or perhaps see if there's a connection between how much the mother speaks and then the kid. There is also no indication of how accurate these averafes are, when it's done mid analysis. No indicators of variability or other traits of distributions. The average may not be a accurate description at all.
 ```
