@@ -1,6 +1,6 @@
 ---
 title: "A1_P1_Student"
-author: "Céline Carlsen"
+author: "Peter Thestrup Waade"
 date: "29/8/2017"
 output: html_document
 ---
@@ -222,14 +222,15 @@ List all kids who:
 3. have not completed all trials. Tip: Use pipes to solve this
 
 ```{r}
-by(d, SUBJ, mean(d$CHI_MLU))
+### 1
+d_temp = d %>%
+  #Look at one subject at a time
+  group_by(SUBJ) %>%
+  #Only choose the ones where the mean of all CHI_MLU scores is more than 2.7
+  filter(mean(CHI_MLU) > 2.7) 
 
-mean(d$CHI_MLU)
-
----------
-### 1 #######PROBLEM########
-# () around it both display it and make a dataframe(or variable)
-(chi_1 = filter(d, CHI_MLU > 2.7)) 
+#List all the kids - all the different values in the SUBJ column
+levels(as.factor(d_temp$SUBJ)) 
 
 
 ### 2
@@ -240,14 +241,15 @@ d_temp = filter(d, VISIT ==1 & CHI_MLU < 1.5)
 levels(as.factor(d_temp$SUBJ)) 
 
 
-### 3 #######PROBLEM#######
-#Create groups by how many visits made, then filter for the ones with less than 6 visits
-chi_3 = d %>%
-  group_by(VISIT) %>%
-  filter(VISIT < 6)
+### 3
+d_temp = d %>%
+  #Look at one subject at a time
+  group_by(SUBJ) %>%
+  #Only choose the ones where not all visits are present (where the sum of the visits is less than 21)
+  filter(sum(VISIT) < 21) 
+
 #List all the kids - all the different values in the SUBJ column
-levels(as.factor(chi_3$SUBJ))
-levels(as.factor(d$SUBJ))
+levels(as.factor(d_temp$SUBJ))
 ----------
 ```
 
@@ -258,7 +260,7 @@ USING ARRANGE
 2. Sort kids to find the kid who produced the least amount of words on the 1st visit.
 
 ```{r}
-###1
+### 1
 d_temp = d%>%
   #Filter for only visit six
   filter(VISIT ==6) %>% 
@@ -269,7 +271,7 @@ d_temp = d%>%
 d_temp$SUBJ[1] 
 
 
-###2
+### 2
 d_temp = d%>%
   #Filter for only visit one
   filter(VISIT ==1) %>% 
@@ -287,14 +289,14 @@ USING SELECT
 2. What happens if you include the name of a variable multiple times in a select() call?
 
 ```{r}
-###1
+### 1
 d_temp = d %>%
   #Filter only kids with ASD
   filter (Diagnosis == "ASD") %>% 
   #Choose only the relevant columns
   select(SUBJ, Diagnosis, CHI_MLU, tokens_CHI)
 
-###2
+### 2
 #Well.. try it out
 d_temp = select(d, SUBJ, SUBJ, Diagnosis, Diagnosis, Diagnosis)
 #You might as well only select it once. YOu only get it once anyway.
@@ -311,16 +313,19 @@ USING MUTATE, SUMMARISE and PIPES
 
 -------------
   # 1.a.ambiguous question so if i take all words spoken by both mom and kid then whole average
-i = i %>% 
+d_temp = d %>% 
   group_by(SUBJ) %>% 
   mutate(avgWords_MOMCHI = mean(tokens_CHI+tokens_MOT))
 # 1.b. all words all visits for KID
-i = i %>% 
+D-temp = d %>% 
   group_by(SUBJ) %>% 
   mutate(avgWords_CHI = mean(tokens_CHI))
 
+#Also an option... not split ub by kids..
+d_temp = mutate(d, avgWords_CHI = mean(tokens_CHI))
+
 # 2. add a column containing the mean amount of words produced by each trial across all visits. HINT: group by Child.ID
-i = i %>%
+d_temp = d_temp %>%
   group_by(VISIT) %>%
   mutate(avg_Words_perTrial = mean(tokens_CHI))
 
