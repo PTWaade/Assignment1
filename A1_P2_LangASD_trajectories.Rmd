@@ -79,7 +79,7 @@ Load necessary libraries : what will you need?
 - e.g. mixed effects models
 
 ```{r Load Libraries}
-library(lmerTest); library(lme4); library(MuMIn); library(car); library(ggplot2)
+library(lmerTest); library(lme4); library(MuMIn); library(car); library(ggplot2); library(dplyr)
 
 
 ```
@@ -101,7 +101,6 @@ options(digits = 4)
 #Read file
 d = read.csv("Assignment1CLEAN.csv", sep = ",", stringsAsFactors = F, header = T)
 
-
 ```
 
 ### Characterize the participants (Exercise 1)
@@ -122,7 +121,7 @@ d$Diagnosis = as.factor(d$Diagnosis)
 dv1 = filter(d, VISIT ==1)
 
 
-#Test age
+###Test age
 #Boxplot
 ggplot(d, aes(Diagnosis, Age)) + 
   geom_boxplot ()
@@ -131,7 +130,7 @@ ggplot(d, aes(Diagnosis, Age)) +
 summary(lm(Age ~ Diagnosis, d))
 
 
-#Test Gender
+###Test Gender
 #Barplot
 counts = table(dv1$Gender, dv1$Diagnosis)
 barplot(counts,
@@ -143,7 +142,7 @@ barplot(counts,
 summary(glm(Gender ~ Diagnosis, family = binomial, data = d))
 
 
-#Test verbalIQ
+###Test verbalIQ
 #Boxplot
 ggplot(d, aes(Diagnosis, verbalIQ)) + 
   geom_boxplot ()
@@ -151,10 +150,15 @@ ggplot(d, aes(Diagnosis, verbalIQ)) +
 #Numberical test
 summary(lm(verbalIQ ~ Diagnosis, d))
 
-#Test NonverbalIQ
+
+###Test NonverbalIQ
+#Boxplot
 ggplot(d, aes(Diagnosis, nonVerbalIQ)) + 
   geom_boxplot ()
+
+#Numerical test
 summary(lm(nonVerbalIQ ~ Diagnosis, d))
+
 ```
 
 [REPORT THE RESULTS]
@@ -170,6 +174,9 @@ Remember to plot the data first and then to run a statistical test.
 - Which variable(s) should be included as random factors?
 
 ```{r}
+GG = lmer(CHI_MLU ~ Diagnosis + VISIT + (1+VISIT|SUBJ), d)
+summary(GG)
+r.squaredGLMM(GG)
 
 ```
 

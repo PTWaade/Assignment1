@@ -199,7 +199,7 @@ d$VISIT=as.numeric(d$VISIT)
 
 #Make gender into a facotr and rename it
 d$Gender = as.factor(d$Gender) %>%
-  revalue(c("1" = "F", "2" = "M"))
+  revalue(c("1" = "M", "2" = "F"))
 
 #And change the name of the diagnosis
 d$Diagnosis = revalue(d$Diagnosis, c("A" = "ASD", "B" = "TD"))
@@ -236,6 +236,7 @@ d_temp = d %>%
 
 #List all the kids - all the different values in the SUBJ column
 levels(as.factor(d_temp$SUBJ)) 
+
 
 ### 2
 #Make dataset, selected based on the two conditions
