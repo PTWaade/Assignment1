@@ -237,7 +237,6 @@ d_temp = d %>%
 #List all the kids - all the different values in the SUBJ column
 levels(as.factor(d_temp$SUBJ)) 
 
-
 ### 2
 #Make dataset, selected based on the two conditions
 d_temp = filter(d, VISIT ==1 & CHI_MLU < 1.5)

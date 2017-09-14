@@ -79,6 +79,8 @@ Load necessary libraries : what will you need?
 - e.g. mixed effects models
 
 ```{r Load Libraries}
+library(lmerTest); library(lme4); library(MuMIn); library(car); library(ggplot2)
+
 
 ```
 
@@ -91,10 +93,14 @@ Load necessary libraries : what will you need?
 
 ```{r Load Data}
 
-#getwd()
-#locpath=
-#setwd(locpath)
-#Data =
+#Set workspace
+setwd("~/Desktop/UNI/Programming/R/Assignments/Assignment1")
+#Round to four digits
+options(digits = 4)
+
+#Read file
+d = read.csv("Assignment1CLEAN.csv", sep = ",", stringsAsFactors = F, header = T)
+
 
 ```
 
@@ -107,7 +113,48 @@ Make sure the variables are in the right format.
 Describe the characteristics of the two groups of participants and whether the two groups are well matched.
 
 ```{r}
+#Make into right format
+str(d)
+d$Gender = as.factor(d$Gender)
+d$Diagnosis = as.factor(d$Diagnosis)
 
+#Only look at visit one, to avoid repeated results
+dv1 = filter(d, VISIT ==1)
+
+
+#Test age
+#Boxplot
+ggplot(d, aes(Diagnosis, Age)) + 
+  geom_boxplot ()
+
+#Numerical difference
+summary(lm(Age ~ Diagnosis, d))
+
+
+#Test Gender
+#Barplot
+counts = table(dv1$Gender, dv1$Diagnosis)
+barplot(counts,
+        col=c("red","blue"),
+        legend = rownames(counts),
+        beside = TRUE)
+
+#Numerical test
+summary(glm(Gender ~ Diagnosis, family = binomial, data = d))
+
+
+#Test verbalIQ
+#Boxplot
+ggplot(d, aes(Diagnosis, verbalIQ)) + 
+  geom_boxplot ()
+
+#Numberical test
+summary(lm(verbalIQ ~ Diagnosis, d))
+
+#Test NonverbalIQ
+ggplot(d, aes(Diagnosis, nonVerbalIQ)) + 
+  geom_boxplot ()
+summary(lm(nonVerbalIQ ~ Diagnosis, d))
 ```
 
 [REPORT THE RESULTS]
