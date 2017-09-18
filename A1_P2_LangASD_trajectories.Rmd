@@ -123,11 +123,11 @@ dv1 = filter(d, VISIT ==1)
 
 ###Test age
 #Boxplot
-ggplot(d, aes(Diagnosis, Age)) + 
+ggplot(dv1, aes(Diagnosis, Age)) + 
   geom_boxplot ()
 
 #Numerical difference
-summary(lm(Age ~ Diagnosis, d))
+summary(lm(Age ~ Diagnosis, dv1))
 
 
 ###Test Gender
@@ -144,20 +144,20 @@ summary(glm(Gender ~ Diagnosis, family = binomial, data = dv1))
 
 ###Test verbalIQ
 #Boxplot
-ggplot(d, aes(Diagnosis, verbalIQ)) + 
+ggplot(dv1, aes(Diagnosis, verbalIQ)) + 
   geom_boxplot ()
 
 #Numberical test
-summary(lm(verbalIQ ~ Diagnosis, d))
+summary(lm(verbalIQ ~ Diagnosis, dv1))
 
 
 ###Test NonverbalIQ
 #Boxplot
-ggplot(d, aes(Diagnosis, nonVerbalIQ)) + 
+ggplot(dv1, aes(Diagnosis, nonVerbalIQ)) + 
   geom_boxplot ()
 
 #Numerical test
-summary(lm(nonVerbalIQ ~ Diagnosis, d))
+summary(lm(nonVerbalIQ ~ Diagnosis, dv1))
 
 ```
 
