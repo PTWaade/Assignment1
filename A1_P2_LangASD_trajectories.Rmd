@@ -90,7 +90,22 @@ There should, though, be other possible explanations.
 ### Exercise 4) Looking into "individual differences" (demographic, clinical or cognitive profiles)
 The dataset contains some additional variables characterizing the kids’ cognitive and clinical profile: ADOS (autism severity), MSEL EL (Expressive Language, that is, verbal IQ, or linguistic skills at first visit as assessed by a psychologist using Mullen Scales of Early Learning), MSEL VR (Visual Reception, used as a proxy for non verbal IQ at first visit), Age, Gender, Ethnicity. Would it make sense to add any of them to your model of linguistic trajectories? Create the best possible model (the one that best explain the data, with MLU as outcome). Next time your model will be tested on new participants, and we will proclaim a winner. Describe your strategy to select the best models (how did you choose the variables to include?) and send the code to Riccardo and Celine.
 
-[HERE GOES YOUR ANSWER]
+
+Here is the code for the model (also below where it can be run easily):
+Model_1 = lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + (1+VISIT|SUBJ), d)
+summary(Model_1)
+r.squaredGLMM(Model_1)
+
+
+ADOS is used instead of Diagnosis, in the hope that it's more finegrained distinction can make more accurate predictions. It's a risk, though, that the distribution might be bad.
+Using the word types is theoretically not very enticing and should be heavily correlated with MLU anyways. But for prediction purposes it could work really well.
+The mothers' MLU is theoretically very enticing, and it has a significant effect, although it is very small. Hopefully, the penalty / risk of overfitting will be made up for by that.
+
+
+
+
+
+
 
 ### [OPTIONAL] Exercise 5) Comment on how the three linguistic variables measure linguistic performance (the so-called "construct validity" of the measures). Do they express the same variance?
 
@@ -271,8 +286,14 @@ Your task now is to figure out how to best describe the children linguistic traj
 
 ```{r}
 
-Model_0 = lmer(CHI_MLU ~ VISIT + types_CHI + (1+VISIT|SUBJ), d)
+Model_0 = lmer(CHI_MLU ~ VISIT*ADOS + types_CHI + (1+VISIT|SUBJ), d)
+summary(Model_0)
 r.squaredGLMM(Model_0)
+
+Model_1 = lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + (1+VISIT|SUBJ), d)
+summary(Model_1)
+r.squaredGLMM(Model_1)
+
 
 ```
 
