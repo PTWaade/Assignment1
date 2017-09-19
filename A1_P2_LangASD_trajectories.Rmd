@@ -147,6 +147,10 @@ summary(glm(Gender ~ Diagnosis, family = binomial, data = dv1))
 ggplot(dv1, aes(Diagnosis, verbalIQ)) + 
   geom_boxplot ()
 
+#Violin plot
+ggplot(dv1, aes(Diagnosis, verbalIQ)) + 
+  geom_violin ()
+
 #Numberical test
 summary(lm(verbalIQ ~ Diagnosis, dv1))
 
