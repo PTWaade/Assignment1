@@ -36,18 +36,56 @@ N.B. The following lines are a summary of the questions to be answered, the step
 
 Describe the participant samples in the dataset (e.g. by diagnosis, age, etc.). Do you think the two groups are well balanced? If not, what do you think was the reason?
 
-[HERE GOES YOUR ANSWER]
+
+
+We have looked at the balance on the variables: Age, gender, verbal IQ and non-verbal IQ, and only for the first visit.
+
+Age-wise, the group of autism-diagnosed children are on average 12 months older than the typically developing children – almost twice as old. This is not well balanced, but I can imagine also difficult to avoid. If age interacts with the investigated effects, this could be a problem.
+
+Gender-wise, the autism-diagnosed children are mainly male. The typically developing children are distributed gender-wise in a very similar way.
+
+The verbal IQ is not numerically significantly different for the two groups of kids, neither does it seem too skewed on a boxplot. The typically developing kids seem to have a slightly smaller range of IQ’s. On a violin plot it could seem that there might be two different groups of verbal IQ in the autism-diagnosed kids, but the pattern is slight, and it is difficult to say if it is only due to chance.
+
+The nonverbal IQ is very similar in the two groups, graphically and numerically.
+
+------------------------------------------------
+
 
 ### Exercise 2) Children learning language: the effects of time and ASD
 Describe linguistic development in TD and ASD children in terms of Mean Length of Utterance (MLU)?
 
+It seems that kids' MLU increases over time, and it cannot be assessed if there is a general difference in MLU is different from autistic and non-autistic kids.It does seem, though, that the growth rate is higher for typically developing children.
 
-[HERE GOES YOUR ANSWER]
+There is a positive relation of 0.1 per visit between time and the child's MLU, statistically significant to p<0.05 (t(59.4) = 3.69).
+There is no significant relation between autism diagnosis and MLU, p>0.05 (t(57.4) = -1.26).
+There is a positive interaction effect between time and diagnosis, typically developing children increasing their MLU per visit by 0.25 more than autistically diagnosed kid, statistically significant to p<0.05 (t(59.9) = 6.72)
+
+The random effect of participant has a standard deviation of 0.56, very large compared to the main effects. The standard deviation of the random slope on visit is 0.0119, reasonably negligible.
+
+The full model explains about 82 % of the variance, of which only 35.5% is explained by the fixed effects. It is a large gap, and the model could definitely be improved.
+
+
+
+---------------------------------------------------
 
 ### Exercise 3) Child directed speech as a moving target
 Describe how parental use of language changes over time in terms of MLU. What do you think is going on?
 
-[HERE GOES YOUR ANSWER]
+
+It seems that parents' MLU is also increasing with time, and that parents usually have a greater MLU to typically developing children. It cannot be assessed if there is a difference in the change over time of mother's MLU depending on the kid's diagnosis.
+
+There is a smaller but not irrelevant positive relation of 0.13 per visit between time and mother's MLU, statistically significant to p<0.05 (t(57.2) = 3.74).
+Typically developing children on average have a MLU larger by 0.36 than autistically diagnosed kids significant to p<0.05 (t(57.9) = 2.02).
+There is no singificant interaction effect between growth over time and diagnosis, p>0.05 (t(57.7) = 1.1)
+
+The random effect of participant has a standard deviation of 0.34, very large compared to the effects. The standard deviation of the random slope on visit is 0.1, reasonably negligible.
+
+The full model explains about 68 % of the variance, of which only 22.5% is explained by the fixed effects. The model explains very little of the variance.
+
+It would make sense that as the kids MLU goes up, so does the mother's, as she tries to talk in a language understandable and reproducible to the kid, and tries to avoid speaking in too complicated a language. It could be tested if the child's MLU and the mother's MLU are correlated, which would seem likely.
+It also makes sense that less of the variance in parent's MLU is explained by time and diagnosis than for the kid, since here the effect is indirect, as the mother is adapting to the results of those effects on the kid.
+There should, though, be other possible explanations.
+
 
 ### Exercise 4) Looking into "individual differences" (demographic, clinical or cognitive profiles)
 The dataset contains some additional variables characterizing the kids’ cognitive and clinical profile: ADOS (autism severity), MSEL EL (Expressive Language, that is, verbal IQ, or linguistic skills at first visit as assessed by a psychologist using Mullen Scales of Early Learning), MSEL VR (Visual Reception, used as a proxy for non verbal IQ at first visit), Age, Gender, Ethnicity. Would it make sense to add any of them to your model of linguistic trajectories? Create the best possible model (the one that best explain the data, with MLU as outcome). Next time your model will be tested on new participants, and we will proclaim a winner. Describe your strategy to select the best models (how did you choose the variables to include?) and send the code to Riccardo and Celine.
@@ -80,7 +118,6 @@ Load necessary libraries : what will you need?
 
 ```{r Load Libraries}
 library(lmerTest); library(lme4); library(MuMIn); library(car); library(ggplot2); library(dplyr)
-
 
 ```
 
@@ -180,10 +217,9 @@ Remember to plot the data first and then to run a statistical test.
 ```{r}
 
 #Create model
-ModelCHI = lmer(CHI_MLU ~ VISIT + Diagnosis + (1+VISIT|SUBJ), d)
+ModelCHI = lmer(CHI_MLU ~ VISIT + Diagnosis + VISIT*Diagnosis + (1+VISIT|SUBJ), d)
 #Get stats
 summary(ModelCHI)
-
 
 ```
 
@@ -218,7 +254,7 @@ Linguistic development of children MLU is affected by ... [COMPLETE]
 
 ```{r}
 #Create model
-ModelMOT = lmer(MOT_MLU ~ VISIT + Diagnosis + (1+VISIT|SUBJ), d)
+ModelMOT = lmer(MOT_MLU ~ VISIT + Diagnosis + VISIT*Diagnosis + (1+VISIT|SUBJ), d)
 #Get stats
 summary(ModelMOT)
 
