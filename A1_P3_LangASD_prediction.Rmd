@@ -37,7 +37,7 @@ How did your models from last time perform? In this exercise you have to compare
 
 ```{r}
 #Load Libraries:
-pacman::p_load(lmerTest, lme4, MuMIn, car, ggplot2, dplyr, modelr, stringr, tidyverse)
+pacman::p_load(lmerTest, lme4, MuMIn, car, ggplot2, dplyr, modelr, stringr, tidyverse, merTools)
 
 #Round to four digits
 options(digits = 4)
@@ -104,12 +104,17 @@ write.csv (dt, file = "Assignment1TestingCLEAN.csv")
 ############### 
 
 #Create old model
-Model_1 = lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + (1+VISIT|SUBJ), d)
-summary(Model_1)
+Model_Origin = lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + (1+VISIT|SUBJ), d)
+summary(Model_Origin)
 
 #Test model on training data: root mean square error
-rmse(Model_1, d)
+rmse(Model_Origin, d)
 
+#Test model on testing data: root mean square error
+rmse(Model_Origin, dt)
+
+#Test prediction uncertainty
+predictInterval(Model_Origin, dt)
 
 ```
 
@@ -131,6 +136,14 @@ In this exercise you have to use cross-validation to calculate the predictive er
 
 
 ```{r}
+#Create basic model
+Model_0 = lmer(CHI_MLU ~ VISIT*Diagnosis + (1+VISIT|SUBJ), d)
+
+#Create folds
+Folds = createFolds(unique(d$SUBJ), 4)
+
+Folds$Fold1
+d$SUBJ.in(Folds$Fold1)
 
 ```
 
