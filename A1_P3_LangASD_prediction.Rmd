@@ -34,6 +34,85 @@ How did your models from last time perform? In this exercise you have to compare
 
 [HERE GOES YOUR ANSWER]
 
+
+```{r}
+#Load Libraries:
+pacman::p_load(lmerTest, lme4, MuMIn, car, ggplot2, dplyr, modelr, stringr, tidyverse)
+
+#Round to four digits
+options(digits = 4)
+
+#Read data
+d = read.csv("Assignment1CLEAN.csv", sep = ",", stringsAsFactors = F, header = T)
+dt_dem = read.csv("demo_test.csv", sep = ",", stringsAsFactors = F, header = T)
+dt_LU = read.csv("LU_test.csv", sep = ",", stringsAsFactors = F, header = T)
+dt_token = read.csv("token_test.csv", sep = ",", stringsAsFactors = F, header = T)
+
+#####################  CREATE THE TESTING DATASET ##################
+
+#Rename variables
+dt_dem = plyr::rename(dt_dem, c(Child.ID = "SUBJ", Visit = "VISIT"))
+
+#Remove all non-digits from visit numbers
+dt_LU$VISIT=str_extract(dt_LU$VISIT,"\\d")
+dt_token$VISIT=str_extract(dt_token$VISIT,"\\d")
+
+#Remove all periods from subject ID's
+dt_dem$SUBJ=gsub("\\.","",dt_dem$SUBJ)
+dt_LU$SUBJ=gsub("\\.","",dt_LU$SUBJ)
+dt_token$SUBJ=gsub("\\.","",dt_token$SUBJ)
+
+#Make subsets of datasets with interesting variables
+dtsel_dem = dplyr :: select(dt_dem, SUBJ, VISIT, Ethnicity, Diagnosis, Gender, Age, ADOS, MullenRaw, ExpressiveLangRaw) #1
+dtsel_token = dplyr :: select(dt_token, SUBJ, VISIT, types_MOT, types_CHI, tokens_MOT, tokens_CHI) #2
+dtsel_LU = dplyr :: select(dt_LU, SUBJ, VISIT, MOT_MLU, MOT_LUstd, CHI_MLU, CHI_LUstd) #3
+
+#Merge subsets into one datafile
+dt = merge(dtsel_dem,dtsel_token)
+dt = merge(dtsel_LU, dt)
+
+#Create a subset only for visit 1
+dt_v1 = dt[dt$VISIT==1,]
+#Rename the variables
+dt_v1 = plyr::rename(dt_v1, c(ADOS = "ADOSx", MullenRaw = "nonVerbalIQ", ExpressiveLangRaw = "verbalIQ"))
+#Merge them again. Aparrently, the merge function will then duplicate the value for all the visits.
+dt=merge(dt,
+         dplyr :: select(dt_v1, SUBJ, ADOSx, nonVerbalIQ, verbalIQ),
+         by = "SUBJ")
+#Delete old columns
+dt=subset(dt, select = -c(ADOS, MullenRaw, ExpressiveLangRaw))
+#Rename Ados
+dt= plyr:: rename(dt, c(ADOSx="ADOS"))
+
+#Make ID into numbers
+dt$SUBJ = as.numeric(as.factor(dt$SUBJ))
+
+#Make visit numeric
+dt$VISIT=as.numeric(dt$VISIT)
+
+#Make gender into a facotr and rename it
+dt$Gender = as.factor(dt$Gender) %>%
+  revalue(c("1" = "M", "2" = "F"))
+
+#And change the name of the diagnosis
+dt$Diagnosis = revalue(dt$Diagnosis, c("A" = "ASD", "B" = "TD"))
+
+#Write the testing dataset 
+write.csv (dt, file = "Assignment1TestingCLEAN.csv")
+
+
+############### 
+
+#Create old model
+Model_1 = lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + (1+VISIT|SUBJ), d)
+summary(Model_1)
+
+#Test model on training data: root mean square error
+rmse(Model_1, d)
+
+
+```
+
 ### Exercise 2) Model Selection via Cross-validation (N.B: ChildMLU!)
 
 One way to reduce bad surprises when testing a model on new data is to train the model via cross-validation. 
@@ -50,6 +129,12 @@ In this exercise you have to use cross-validation to calculate the predictive er
 - Bonus Question 2: What is the effect of changing the number of folds? Can you plot RMSE as a function of number of folds?
 - Bonus Question 3: compare the cross-validated predictive error against the actual predictive error on the test data
 
+
+```{r}
+
+```
+
+
 ### Exercise 3) Assessing the single child
 
 Let's get to business. This new kiddo - Bernie - has entered your clinic. This child has to be assessed according to his group's average and his expected development.
@@ -64,6 +149,14 @@ You want to evaluate:
 - how does the child fare compared to the model predictions at Visit 6? Is the child below or above expectations? (tip: use the predict() function on Bernie's data only and compare the prediction with the actual performance of the child)
 
 [HERE GOES YOUR ANSWER]
+
+
+
+```{r}
+
+```
+
+
 
 ### OPTIONAL: Exercise 4) Model Selection via Information Criteria
 Another way to reduce the bad surprises when testing a model on new data is to pay close attention to the relative information criteria between the models you are comparing. Let's learn how to do that!
