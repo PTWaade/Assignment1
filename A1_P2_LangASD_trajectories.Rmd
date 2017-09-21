@@ -56,14 +56,13 @@ Describe linguistic development in TD and ASD children in terms of Mean Length o
 
 It seems that kids' MLU increases over time, and it cannot be assessed if there is a general difference in MLU is different from autistic and non-autistic kids.It does seem, though, that the growth rate is higher for typically developing children.
 
-There is a positive relation of 0.1 per visit between time and the child's MLU, statistically significant to p<0.05 (t(59.4) = 3.69).
-There is no significant relation between autism diagnosis and MLU, p>0.05 (t(57.4) = -1.26).
-There is a positive interaction effect between time and diagnosis, typically developing children increasing their MLU per visit by 0.25 more than autistically diagnosed kid, statistically significant to p<0.05 (t(59.9) = 6.72)
+There is a positive relation of 0.1 per visit between time and the child's MLU, statistically significant (β = 0.1, SE = 0.027, p = 0.00049).
+There is no significant relation between autism diagnosis and MLU (β = -0.2173, SE = 0.1724, p = 0.21268).
+There is a positive interaction effect between time and diagnosis, typically developing children increasing their MLU per visit by 0.25 more than autistically diagnosed kid, statistically significant to (β = 0.2534, SE = 0.0377, p = 7.7e-09).
 
 The random effect of participant has a standard deviation of 0.56, very large compared to the main effects. The standard deviation of the random slope on visit is 0.0119, reasonably negligible.
 
 The full model explains about 82 % of the variance, of which only 35.5% is explained by the fixed effects. It is a large gap, and the model could definitely be improved.
-
 
 
 ---------------------------------------------------
@@ -74,9 +73,9 @@ Describe how parental use of language changes over time in terms of MLU. What do
 
 It seems that parents' MLU is also increasing with time, and that parents usually have a greater MLU to typically developing children. It cannot be assessed if there is a difference in the change over time of mother's MLU depending on the kid's diagnosis.
 
-There is a smaller but not irrelevant positive relation of 0.13 per visit between time and mother's MLU, statistically significant to p<0.05 (t(57.2) = 3.74).
-Typically developing children on average have a MLU larger by 0.36 than autistically diagnosed kids significant to p<0.05 (t(57.9) = 2.02).
-There is no singificant interaction effect between growth over time and diagnosis, p>0.05 (t(57.7) = 1.1)
+There is a smaller but not irrelevant positive relation of  per visit between time and mother's MLU, statistically significant to (β = 0.0992, SE = 0.0266, p = 0.00043).
+Typically developing children on average have a MLU larger by 0.36 than autistically diagnosed kids significant to (β = 0.3562, SE = 0.1760, p = 04762).
+There is no singificant interaction effect between growth over time and diagnosis, (β = 0.0403, SE = 0.0368, p = 0.27765).
 
 The random effect of participant has a standard deviation of 0.34, very large compared to the effects. The standard deviation of the random slope on visit is 0.1, reasonably negligible.
 
@@ -100,9 +99,6 @@ r.squaredGLMM(Model_1)
 ADOS is used instead of Diagnosis, in the hope that it's more finegrained distinction can make more accurate predictions. It's a risk, though, that the distribution might be bad.
 Using the word types is theoretically not very enticing and should be heavily correlated with MLU anyways. But for prediction purposes it could work really well.
 The mothers' MLU is theoretically very enticing, and it has a significant effect, although it is very small. Hopefully, the penalty / risk of overfitting will be made up for by that.
-
-
-
 
 
 
@@ -294,7 +290,7 @@ Model_1 = lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + (1+VISIT|SUBJ), d)
 summary(Model_1)
 r.squaredGLMM(Model_1)
 
-
+anova(Model_0, Model_1)
 ```
 
 REPORT OF THE RESULTS
