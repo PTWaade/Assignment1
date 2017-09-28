@@ -37,7 +37,7 @@ How did your models from last time perform? In this exercise you have to compare
 
 ```{r}
 #Load Libraries:
-pacman::p_load(lmerTest, lme4, MuMIn, car, ggplot2, dplyr, modelr, stringr, tidyverse, merTools)
+pacman::p_load(lmerTest, lme4, MuMIn, car, ggplot2, dplyr, modelr, stringr, tidyverse, merTools, plyr, caret, Metrics)
 
 #Round to four digits
 options(digits = 4)
@@ -136,14 +136,41 @@ In this exercise you have to use cross-validation to calculate the predictive er
 
 
 ```{r}
+
+#Make SUBJ into factors
+d$SUBJ = as.factor(d$SUBJ)
+
+
+
 #Create basic model
 Model_0 = lmer(CHI_MLU ~ VISIT*Diagnosis + (1+VISIT|SUBJ), d)
 
 #Create folds
 Folds = createFolds(unique(d$SUBJ), 4)
 
-Folds$Fold1
-d$SUBJ.in(Folds$Fold1)
+#Preperations for loop - result lists and n
+rmse_train = NULL
+rmse_test = NULL
+n = 1
+
+for (i in Folds) {
+  #Make a test dataset with one fold
+  dtest_temp = subset(d, SUBJ %in% i)
+  #Make a training dataset with all other folds
+  dtrain_temp = subset(d,!(SUBJ %in% i))
+                       
+  #Make a model on the training dataset
+  Model_temp = lmer(CHI_MLU ~ VISIT*Diagnosis + (1+VISIT|SUBJ), dtrain_temp)
+  
+  #Check error between fit of training data and actual training data
+  rmse_train[n] = Metrics :: rmse(dtrain_temp$CHI_MLU, fitted(Model_temp))
+  
+  #Check error between predicitions for test data and actual test data
+  rmse_test[n] = Metrics :: rmse(dtest_temp$CHI_MLU, predict(Model_temp, dtest_temp, allow.new.levels=T))
+  
+  #Next loop new placement in result lists. Loop end
+  n=n+1  }
+
 
 ```
 
