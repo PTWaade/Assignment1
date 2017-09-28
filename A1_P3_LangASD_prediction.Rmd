@@ -116,6 +116,10 @@ rmse(Model_Origin, dt)
 #Test prediction uncertainty
 predictInterval(Model_Origin, dt)
 
+
+#Create basic model
+Model_0 = lmer(CHI_MLU ~ VISIT*Diagnosis + (1+VISIT|SUBJ), d)
+
 ```
 
 ### Exercise 2) Model Selection via Cross-validation (N.B: ChildMLU!)
@@ -137,13 +141,13 @@ In this exercise you have to use cross-validation to calculate the predictive er
 
 ```{r}
 
-#Make SUBJ into factors
+#Make variables into factors
 d$SUBJ = as.factor(d$SUBJ)
+d$Gender = as.factor(d$Gender)
+d$Diagnosis = as.factor(d$Diagnosis)
 
 
-
-#Create basic model
-Model_0 = lmer(CHI_MLU ~ VISIT*Diagnosis + (1+VISIT|SUBJ), d)
+#------------- CROOOOOOOOSS VALLIDAAAAATION -------------
 
 #Create folds
 Folds = createFolds(unique(d$SUBJ), 4)
@@ -157,7 +161,7 @@ for (i in Folds) {
   #Make a test dataset with one fold
   dtest_temp = subset(d, SUBJ %in% i)
   #Make a training dataset with all other folds
-  dtrain_temp = subset(d,!(SUBJ %in% i))
+  dtrain_temp = subset(d,!SUBJ %in% i)
                        
   #Make a model on the training dataset
   Model_temp = lmer(CHI_MLU ~ VISIT*Diagnosis + (1+VISIT|SUBJ), dtrain_temp)
@@ -170,6 +174,11 @@ for (i in Folds) {
   
   #Next loop new placement in result lists. Loop end
   n=n+1  }
+
+#Get results
+mean(rmse_train)
+mean(rmse_test)
+
 
 
 ```
@@ -193,6 +202,38 @@ You want to evaluate:
 
 
 ```{r}
+Model_Final = 
+
+#Create Bernie dataset. He is Kid number 2.
+d_Bernie = subset(dt, SUBJ == 2)
+
+
+#Get average verbalIQ for TD kids (subset for kids with TD, choose verbalIQ, get mean)
+avg_verbalIQ = mean(subset(d, Diagnosis == "TD")$verbalIQ)
+avg_CHI_MLU = mean(subset(d, Diagnosis == "TD")$CHI_MLU)
+
+
+#Create fake Average Joe dataset
+AvgJoe = data.frame(SUBJ = rep(666, 6),
+                    Diagnosis = rep("TD", 6),
+                    VISIT = c(1:6), 
+                    verbalIQ = rep(avg_verbalIQ, 6)
+                    )
+
+#Predict Average Joe's scores
+Joe_scores = predict(Model_0, AvgJoe, allow.new.levels=T)
+  
+#Check numerical difference between Bernie and Average Joe
+   # - Plot them together
+
+#------------
+
+#Predict Bernie's score for visit 6
+predict(Model_0, d_Bernie)[6]
+
+#Compare Bernie's actual score at visit 6 to the predicted score
+d_Bernie$CHI_MLU[6]
+
 
 ```
 
