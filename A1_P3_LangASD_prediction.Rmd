@@ -108,10 +108,10 @@ Model_Origin = lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + (1+VISIT|SUBJ),
 summary(Model_Origin)
 
 #Test model on training data: root mean square error
-rmse(Model_Origin, d)
+modelr:: rmse(Model_Origin, d)
 
 #Test model on testing data: root mean square error
-rmse(Model_Origin, dt)
+modelr:: rmse(Model_Origin, dt)
 
 #Test prediction uncertainty
 predictInterval(Model_Origin, dt)
@@ -150,18 +150,18 @@ d$Diagnosis = as.factor(d$Diagnosis)
 #------------- CROOOOOOOOSS VALLIDAAAAATION -------------
 
 #Create folds
-Folds = createFolds(unique(d$SUBJ), 4)
+Folds = createFolds(unique(d$SUBJ), 5)
 
-#Preperations for loop - result lists and n
+#Preperations for loop - result lists and n reset
 rmse_train = NULL
 rmse_test = NULL
-n = 1
+n=1
 
 for (i in Folds) {
   #Make a test dataset with one fold
   dtest_temp = subset(d, SUBJ %in% i)
   #Make a training dataset with all other folds
-  dtrain_temp = subset(d,!SUBJ %in% i)
+  dtrain_temp = subset(d, !SUBJ %in% i)
                        
   #Make a model on the training dataset
   Model_temp = lmer(CHI_MLU ~ VISIT*Diagnosis + (1+VISIT|SUBJ), dtrain_temp)
@@ -170,15 +170,19 @@ for (i in Folds) {
   rmse_train[n] = Metrics :: rmse(dtrain_temp$CHI_MLU, fitted(Model_temp))
   
   #Check error between predicitions for test data and actual test data
-  rmse_test[n] = Metrics :: rmse(dtest_temp$CHI_MLU, predict(Model_temp, dtest_temp, allow.new.levels=T))
-  
-  #Next loop new placement in result lists. Loop end
-  n=n+1  }
+  rmse_test[n] = Metrics :: rmse(dtest_temp$CHI_MLU, predict(Model_temp, dtest_temp, allow.new.levels=T)) 
+
+    #Loop end and n+1
+  n=n+1
+  }
+
 
 #Get results
+rmse_train
 mean(rmse_train)
-mean(rmse_test)
 
+rmse_test
+mean(rmse_test)
 
 
 ```
