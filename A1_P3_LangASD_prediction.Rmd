@@ -32,7 +32,11 @@ How did your models from last time perform? In this exercise you have to compare
 - optional: predictions are never certain, can you identify the uncertainty of the predictions? (e.g. google predictinterval())
 
 
-[HERE GOES YOUR ANSWER]
+Answer:
+First the new testing data is cleaning in exactly the same way as the training data.
+I am using the model from last assignment: lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + (1+VISIT|SUBJ).
+The model has a root mean squared error of 0.29,
+And when tested on the new data, it has one of 0.46.
 
 
 ```{r}
@@ -139,12 +143,20 @@ In this exercise you have to use cross-validation to calculate the predictive er
 - Bonus Question 3: compare the cross-validated predictive error against the actual predictive error on the test data
 
 
+Answer:
+With 5 folds, the basic model has a mean rmse of 3.47, and of 0.73 when tested on new data.
+
+The best model I found in terms of corss-validation was 
+lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + verbalIQ + (1+VISIT|SUBJ), dtrain_temp)
+With a mean rmse of 0.29, and of 0.43 on new data.
+
 ```{r}
 
 #Make variables into factors
 d$SUBJ = as.factor(d$SUBJ)
 d$Gender = as.factor(d$Gender)
 d$Diagnosis = as.factor(d$Diagnosis)
+
 
 
 #------------- CROOOOOOOOSS VALLIDAAAAATION -------------
@@ -164,7 +176,7 @@ for (i in Folds) {
   dtrain_temp = subset(d, !SUBJ %in% i)
                        
   #Make a model on the training dataset
-  Model_temp = lmer(CHI_MLU ~ VISIT*Diagnosis + (1+VISIT|SUBJ), dtrain_temp)
+  Model_temp = lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + verbalIQ + (1+VISIT|SUBJ), dtrain_temp)
   
   #Check error between fit of training data and actual training data
   rmse_train[n] = Metrics :: rmse(dtrain_temp$CHI_MLU, fitted(Model_temp))
@@ -201,12 +213,19 @@ You want to evaluate:
 
 - how does the child fare compared to the model predictions at Visit 6? Is the child below or above expectations? (tip: use the predict() function on Bernie's data only and compare the prediction with the actual performance of the child)
 
-[HERE GOES YOUR ANSWER]
 
+Answer:
+Bernie fares better than the average typially developing kid in terms of MLU, as seen on the plot generated from the code. 
+In absolute values, Bernies scores are higher on all except the first visit. The differences are:
+      1       2       3       4       5       6 
+-0.0205  0.4127  1.0946  0.7977  0.6610  0.8093 
+
+He is almost exactly on the model's predicted value for his sixth visit, scoring 3.45 instead of the predicted 3.35.
 
 
 ```{r}
-Model_Final = 
+#Create model from last excercise
+Model_Final = lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + verbalIQ + (1+VISIT|SUBJ), dtrain_temp)
 
 #Create Bernie dataset. He is Kid number 2.
 d_Bernie = subset(dt, SUBJ == 2)
@@ -215,29 +234,39 @@ d_Bernie = subset(dt, SUBJ == 2)
 #Get average verbalIQ for TD kids (subset for kids with TD, choose verbalIQ, get mean)
 avg_verbalIQ = mean(subset(d, Diagnosis == "TD")$verbalIQ)
 avg_CHI_MLU = mean(subset(d, Diagnosis == "TD")$CHI_MLU)
+avg_ADOS = mean(subset(d, Diagnosis == "TD")$ADOS)
+avg_MOT_MLU = mean(subset(d, Diagnosis == "TD")$MOT_MLU)
+avg_types_CHI = mean(subset(d, Diagnosis == "TD")$types_CHI)
 
 
 #Create fake Average Joe dataset
 AvgJoe = data.frame(SUBJ = rep(666, 6),
                     Diagnosis = rep("TD", 6),
                     VISIT = c(1:6), 
-                    verbalIQ = rep(avg_verbalIQ, 6)
+                    verbalIQ = rep(avg_verbalIQ, 6),
+                    ADOS = rep(avg_ADOS, 6),
+                    MOT_MLU = rep(avg_MOT_MLU, 6),
+                    types_CHI = rep(avg_types_CHI, 6)
                     )
 
 #Predict Average Joe's scores
-Joe_scores = predict(Model_0, AvgJoe, allow.new.levels=T)
-  
+Joe_scores = predict(Model_Final, AvgJoe, allow.new.levels=T)
+
 #Check numerical difference between Bernie and Average Joe
    # - Plot them together
+plot(x, d_Bernie$CHI_MLU, ylim = c(1,4)) +
+lines(x, Joe_scores)
+
+#Define absolute distance between Bernie and AvgJoe
+d_Bernie$CHI_MLU - Joe_scores
 
 #------------
 
 #Predict Bernie's score for visit 6
-predict(Model_0, d_Bernie)[6]
+predict(Model_Final, d_Bernie)[6]
 
 #Compare Bernie's actual score at visit 6 to the predicted score
 d_Bernie$CHI_MLU[6]
-
 
 ```
 
