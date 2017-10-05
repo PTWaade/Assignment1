@@ -197,6 +197,9 @@ rmse_test
 mean(rmse_test)
 
 
+
+
+
 ```
 
 
@@ -225,7 +228,7 @@ He is almost exactly on the model's predicted value for his sixth visit, scoring
 
 ```{r}
 #Create model from last excercise
-Model_Final = lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + verbalIQ + (1+VISIT|SUBJ), dtrain_temp)
+Model_Final = lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + verbalIQ + (1+VISIT|SUBJ), d)
 
 #Create Bernie dataset. He is Kid number 2.
 d_Bernie = subset(dt, SUBJ == 2)
@@ -267,6 +270,10 @@ predict(Model_Final, d_Bernie)[6]
 
 #Compare Bernie's actual score at visit 6 to the predicted score
 d_Bernie$CHI_MLU[6]
+
+#Get absolute difference
+predict(Model_Final, d_Bernie)[6] - d_Bernie$CHI_MLU[6]
+
 
 ```
 
