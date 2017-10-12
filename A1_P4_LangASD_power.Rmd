@@ -22,30 +22,77 @@ How much power does your study have (if your model estimates are quite right)?
 
 
 
-Answer:
+ANSWER:
 
+Power for predictor 'VISIT', (95% confidence interval):
+      100.0% (96.38, 100.0)
+Test: unknown test
+      Effect size for VISIT is 0.15
+      
+Power for predictor 'ADOS', (95% confidence interval):
+      98.00% (92.96, 99.76)
+Test: unknown test
+      Effect size for ADOS is 0.029
+      
+Power for predictor 'MOT_MLU', (95% confidence interval):
+      100.0% (96.38, 100.0)
+Test: unknown test
+      Effect size for MOT_MLU is 0.27
+      
+Power for predictor 'types_CHI', (95% confidence interval):
+      100.0% (96.38, 100.0)
+Test: unknown test
+      Effect size for types_CHI is 0.0065
 
-
+Power for predictor 'verbalIQ', (95% confidence interval):
+      97.00% (91.48, 99.38)
+Test: unknown test
+      Effect size for verbalIQ is 0.025
+      
+Power for predictor 'VISIT:ADOS', (95% confidence interval):
+      100.0% (96.38, 100.0)
+Test: unknown test
+      Effect size for VISIT:ADOS is -0.011
 
 ```{r}
 #Libraries
-pacman::p_load(lmerTest, lme4, simr)
+library(simr)
+library(lmerTest)
+library(MASS)
 
 #Read datasets from before
 d = read.csv("Assignment1CLEAN.csv", sep = ",", stringsAsFactors = F, header = T)
 dt = read.csv("Assignment1TestingCLEAN.csv", sep = ",", stringsAsFactors = F, header = T)
 
+#Change Subject ID's to not overlap
+dt$SUBJ = dt$SUBJ+61
+
 #Combine them
-d = merge(dt,d, all = T)
+d = rbind(d, dt)
+
+#Make variables to factors
+d$SUBJ=as.factor(d$SUBJ)
+d$Diagnosis=as.factor(d$Diagnosis)
 
 #Recreate chosen model
 Model_Final = lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + verbalIQ + (1+VISIT|SUBJ), d)
 
 summary(Model_Final)
 
-#Test power with current beta-values
-powerVisit = powerSim(Model_Final,fixed("VISIT"),nsim=50)
-powerVisit
+#Test power with current beta-values - for each variable
+powerVISIT = powerSim(Model_Final, fixed("VISIT"), nsim=100)
+powerADOS = powerSim(Model_Final, fixed("ADOS"), nsim=100)
+powerMOT_MLU = powerSim(Model_Final, fixed("MOT_MLU"), nsim=100)
+powertypes_CHI = powerSim(Model_Final, fixed("types_CHI"), nsim=100)
+powerverbalIQ = powerSim(Model_Final, fixed("verbalIQ"), nsim=100)
+powerVISIT_ADOS = powerSim(Model_Final, fixed("VISIT:ADOS"), nsim=100)
+
+powerVISIT
+powerADOS
+powerVISIT_ADOS
+powertypes_CHI
+powerMOT_MLU
+powerverbalIQ
 
 ```
 
@@ -66,11 +113,49 @@ How would you perform a more conservative power analysis?
 
 Answer:
 
+Minimum interesting effect sizes
+
+
 
 
 ```{r}
+# Change to lowest relevant effect sizes
+Model_Final2 = Model_Final
+fixef(Model_Final2)
+fixef(Model_Final2)["VISIT"] <- 0.05
+fixef(Model_Final2)["ADOS"] <- 0.02
+fixef(Model_Final2)["VISIT:ADOS"] <- 0.01
+fixef(Model_Final2)["types_CHI"] <- 0.01
+fixef(Model_Final2)["MOT_MLU"] <- 0.01
+fixef(Model_Final2)["verbalIQ"] <- 0.01
 
+
+#And plot the power depending on number of participants
+powerCurveVISIT = powerCurve(Model_Final2, fixed("VISIT"), along="SUBJ", nsim=50)
+powerCurveADOS = powerCurve(Model_Final2, fixed("ADOS"), along="SUBJ", nsim=50)
+powerCurveVISIT_ADOS = powerCurve(Model_Final2, fixed("VISIT:ADOS"), along="SUBJ", nsim=50)
+powerCurvetypes_CHI = powerCurve(Model_Final2, fixed("types_CHI"), along="SUBJ", nsim=50)
+powerCurveMOT_MLU = powerCurve(Model_Final2, fixed("MOT_MLU"), along="SUBJ", nsim=50)
+powerCurveverbalIQ = powerCurve(Model_Final2, fixed("verbalIQ"), along="SUBJ", nsim=50)
+
+plot(powerCurveVISIT)
+plot(powerCurveADOS)
+plot(powerCurveVISIT_ADOS)
+plot(powerCurvetypes_CHI)
+plot(powerCurveMOT_MLU)
+plot(powerCurveverbalIQ)
+
+#It is not enough. More participants need to be simulated.
+#For that, I will use RICCARDO's FUNCTION
+
+
+```
+
+```{r}
+#RICCARDO's FUNCTION for simulating new participants:
 #edited his function a little to fit with my variable names
+
+#############
 
 ### Riccardo's clumsy function to simulate new participants
 ### TO DO points are only notes for myself, so not part of the assignment
@@ -128,7 +213,8 @@ createNewData <- function (participants,visits,model){
 
 ```{r}
 #Simulate dataset
-d_sim = createNewData(100, 6, Model_Final)
+d_sim = createNewData(1000, 6, Model_Final)
+d_sim$SUBJ=as.factor(d_sim$SUBJ)
 
 #Train model on simulated data
 Model_Sim = lmer(CHI_MLU ~ VISIT*Diagnosis + (1+VISIT|SUBJ), d_sim)
@@ -136,91 +222,19 @@ Model_Sim = lmer(CHI_MLU ~ VISIT*Diagnosis + (1+VISIT|SUBJ), d_sim)
 summary(Model_Sim)
 
 #Define smallest interesting effect size
-fixef(Model_Sim)["VISIT"] <- 0.1
-fixef(Model_Sim)["Diagnosis"] <- 0.1
-fixef(Model_Sim)["VISIT:Diagnosis"] <- 0.1
+fixef(Model_Sim)["VISIT"] <- 0.05
+fixef(Model_Sim)["Diagnosis"] <- 0.05
+fixef(Model_Sim)["VISIT:Diagnosis"] <- 0.01
 
 
 #Calculate power depending on how many
-powerCurveV = powerCurve(Model_Sim, fixed("VISIT"),along="SUBJ", nsim=50)
-plot(powerCurveV)
+powerCurveVISITsim = powerCurve(Model_Sim, fixed("VISIT"), along="SUBJ", nsim=50)
+powerCurveDiagnosissim = powerCurve(Model_Sim, fixed("Diagnosis"), along="SUBJ", nsim=50)
+powerCurveinteractsim = powerCurve(Model_Sim, fixed("VISIT:Diagnosis"), along="SUBJ", nsim=50)
 
-```
-
-```{r}
-
-#NEW VERSION OF CREATING DATA
-
-#edited his function a little to fit with my variable names
-
-### Riccardo's clumsy function to simulate new participants
-### TO DO points are only notes for myself, so not part of the assignment
-
-
-createNewData2 <- function (participants,visits,model){
-  # participants is the number of subjects
-  # visits is the number of visits
-  # TO DO: LOOP THROUGH ALL FE ROWS AND AUTOMATICALLY EXTRACT NAMES OF FIXED EFFECTS AND ESTIMATES
-  fe <- fixef(model)
-  Intercept <- fe[1] #intercept
-  bVISIT <- fe[2] #visit
-  bADOS <- fe[3] #ADOS
-  bMOT_MLU <- fe[4] #visit diagnosis interaction
-  btypes_CHI <- fe[5]
-  bverbalIQ <- fe[6]
-  bVISIT_ADOS <- fe[7]
-  # TO DO: INTEGRATE STANDARD ERROR?
-  
-  # TO DO: LOOP THROUGH ALL VC COMPONENTS AND AUTOMATICALLY EXTRACT NAMES OF EFFECTS AND ESTIMATES
-  vc<-VarCorr(model) # variance component
-  sigmaSubject <- as.numeric(attr(vc[[1]],"stddev")[1]) # random intercept by subject
-  sigmaVisit <- as.numeric(attr(vc[[1]],"stddev")[2]) # random slope of visit over subject
-  sigmaResiduals <- as.numeric(attr(vc,"sc"))
-  sigmaCorrelation <- as.numeric(attr(vc[[1]],"correlation")[2])
-  
-  # Create an empty dataframe
-  d=expand.grid(VISIT=1:visits,SUBJ=1:participants)
-  # Randomly sample from a binomial (to generate the diagnosis)
-  condition <- sample(rep(0:1, participants/2))
-  d$Diagnosis<-condition[d$SUBJ]
-  d$Diagnosis[is.na(d$Diagnosis)]<-1
-  
-  ## Define variance covariance matrices:
-  Sigma.u<-matrix(c(sigmaSubject^2,
-                    sigmaCorrelation*sigmaSubject*sigmaVisit,
-                    sigmaCorrelation*sigmaSubject*sigmaVisit,
-                    sigmaVisit^2),nrow=2)
-  
-  ## generate new fake participants (column1=RandomIntercept, column2=RandomSlope)
-  u<-mvrnorm(n=participants,
-             mu=c(0,0),Sigma=cov(ranef(model)$SUBJ))
-  
-  ## now generate fake data:
-  ### the outcome is extracted from a gaussian with
-  ### the solution to the model's equation as mean and
-  ### the residual standard deviation as standard deviation 
-  d$CHI_MLU <- rnorm(participants*visits,
-                     (Intercept+u[,1]) +
-                     (bVISIT+u[,2])*d$VISIT + 
-                     bADOS*d$ADOS+ bMOT_MLU*d$MOT_MLU + btypes_CHI*d$types_CHI + bverbalIQ*d$verbalIQ + bVISIT_ADOS*d$VISIT*d$ADOS, sigmaResiduals)  
-  
-  return(d)
-}
-
-```
-
-```{r}
-#Define smallest interesting effect size
-fixef(Model_Final)["VISIT"] <- 0.5
-fixef(Model_Final)["ADOS"] <- 0.2
-fixef(Model_Final)["MOT_MLU"] <- 0.1
-fixef(Model_Final)["types_CHI"] <- 0.5
-fixef(Model_Final)["verbalIQ"] <- 0.1
-fixef(Model_Final)["VISIT:ADOS"] <- 0.1
-
-#Calculate power depending on how many
-powerCurveV = powerCurve(Model_Final, fixed("VISIT"),along="SUBJ", nsim=50)
-plot(powerCurveV)
+plot(powerCurveVISITsim)
+plot(powerCurveDiagnosissim)
+plot(powerCurveinteractsim)
 
 ```
 
@@ -228,6 +242,8 @@ plot(powerCurveV)
 ### Exercise 3
 
 Assume you have only the resources to collect 30 kids (15 with ASD and 15 TDs). Identify the power for each relevant effect and discuss whether it's worth to run the study and why.
+
+Answer
 
 
 ```{r}
