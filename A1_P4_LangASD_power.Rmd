@@ -24,35 +24,9 @@ How much power does your study have (if your model estimates are quite right)?
 
 ANSWER:
 
-Power for predictor 'VISIT', (95% confidence interval):
-      100.0% (96.38, 100.0)
-Test: unknown test
-      Effect size for VISIT is 0.15
-      
-Power for predictor 'ADOS', (95% confidence interval):
-      98.00% (92.96, 99.76)
-Test: unknown test
-      Effect size for ADOS is 0.029
-      
-Power for predictor 'MOT_MLU', (95% confidence interval):
-      100.0% (96.38, 100.0)
-Test: unknown test
-      Effect size for MOT_MLU is 0.27
-      
-Power for predictor 'types_CHI', (95% confidence interval):
-      100.0% (96.38, 100.0)
-Test: unknown test
-      Effect size for types_CHI is 0.0065
-
-Power for predictor 'verbalIQ', (95% confidence interval):
-      97.00% (91.48, 99.38)
-Test: unknown test
-      Effect size for verbalIQ is 0.025
-      
-Power for predictor 'VISIT:ADOS', (95% confidence interval):
-      100.0% (96.38, 100.0)
-Test: unknown test
-      Effect size for VISIT:ADOS is -0.011
+I tested the power of the study for finding the effect sizes given by the model.
+The power for all the effects is assessed to be at least above 0.91, far more than the 0.8 threshold.
+But this is not necessarily a reliable assessment. The observed effect sizes are unreliable if an experiment is underpowered, meaning that the observed effect sizes could be higher than the actual effect sizes. This means that the power estimates might also be exaggerated. Therefore, the minimum interesting effect sizes should instead be used to calculate the power of the study.
 
 ```{r}
 #Libraries
@@ -113,24 +87,36 @@ How would you perform a more conservative power analysis?
 
 Answer:
 
-Minimum interesting effect sizes
+For the minimum interesting effect sizes, based very conservatively on the observed effect sizes, I have chosen the following:
+Visit: 0.05
+ADOS: 0.01
+Mother's MLU: 0.05
+Word types: 0.003
+Verbal IQ: 0.01
+Visit and ADOS interaction:-0.005
 
+INSERT PLOT
 
+The plot shows that there is not enough participants to have a power of 0.8. But there are not enough participants in the dataset to find out how many participants would be needed as a minimum.
 
+Therefore, I will simulate new participants. I will use Riccardo's function for that, which can omly generate values for visit and diagnosis. Thus, based on running a basic model like that, I choose minimum values of
+Visit: 0.05
+Diagnosis -0.1
+Visit and diagnosis interaction: 0.1
 
 ```{r}
 # Change to lowest relevant effect sizes
 Model_Final2 = Model_Final
 fixef(Model_Final2)
 fixef(Model_Final2)["VISIT"] <- 0.05
-fixef(Model_Final2)["ADOS"] <- 0.02
-fixef(Model_Final2)["VISIT:ADOS"] <- 0.01
-fixef(Model_Final2)["types_CHI"] <- 0.01
-fixef(Model_Final2)["MOT_MLU"] <- 0.01
+fixef(Model_Final2)["ADOS"] <- 0.01
+fixef(Model_Final2)["MOT_MLU"] <- 0.05
+fixef(Model_Final2)["types_CHI"] <- 0.003
 fixef(Model_Final2)["verbalIQ"] <- 0.01
+fixef(Model_Final2)["VISIT:ADOS"] <- -0.005
 
 
-#And plot the power depending on number of participants
+#Calculate the power depending on number of participants
 powerCurveVISIT = powerCurve(Model_Final2, fixed("VISIT"), along="SUBJ", nsim=50)
 powerCurveADOS = powerCurve(Model_Final2, fixed("ADOS"), along="SUBJ", nsim=50)
 powerCurveVISIT_ADOS = powerCurve(Model_Final2, fixed("VISIT:ADOS"), along="SUBJ", nsim=50)
@@ -138,15 +124,13 @@ powerCurvetypes_CHI = powerCurve(Model_Final2, fixed("types_CHI"), along="SUBJ",
 powerCurveMOT_MLU = powerCurve(Model_Final2, fixed("MOT_MLU"), along="SUBJ", nsim=50)
 powerCurveverbalIQ = powerCurve(Model_Final2, fixed("verbalIQ"), along="SUBJ", nsim=50)
 
+#And Plot it
 plot(powerCurveVISIT)
 plot(powerCurveADOS)
 plot(powerCurveVISIT_ADOS)
 plot(powerCurvetypes_CHI)
 plot(powerCurveMOT_MLU)
 plot(powerCurveverbalIQ)
-
-#It is not enough. More participants need to be simulated.
-#For that, I will use RICCARDO's FUNCTION
 
 
 ```
@@ -213,21 +197,26 @@ createNewData <- function (participants,visits,model){
 
 ```{r}
 #Simulate dataset
-d_sim = createNewData(1000, 6, Model_Final)
+d_sim = createNewData(500, 6, Model_Final)
 d_sim$SUBJ=as.factor(d_sim$SUBJ)
 
 #Train model on simulated data
 Model_Sim = lmer(CHI_MLU ~ VISIT*Diagnosis + (1+VISIT|SUBJ), d_sim)
-
 summary(Model_Sim)
+
+
+#Run a basic model to find smallest interesting effect for the model on the simulated data
+Model_0 = lmer(CHI_MLU ~ VISIT*Diagnosis + (1+VISIT|SUBJ), d)
+summary(Model_0)
+
 
 #Define smallest interesting effect size
 fixef(Model_Sim)["VISIT"] <- 0.05
-fixef(Model_Sim)["Diagnosis"] <- 0.05
-fixef(Model_Sim)["VISIT:Diagnosis"] <- 0.01
+fixef(Model_Sim)["Diagnosis"] <- -0.1
+fixef(Model_Sim)["VISIT:Diagnosis"] <- 0.1
 
 
-#Calculate power depending on how many
+#Calculate power for different amounts of participants
 powerCurveVISITsim = powerCurve(Model_Sim, fixed("VISIT"), along="SUBJ", nsim=50)
 powerCurveDiagnosissim = powerCurve(Model_Sim, fixed("Diagnosis"), along="SUBJ", nsim=50)
 powerCurveinteractsim = powerCurve(Model_Sim, fixed("VISIT:Diagnosis"), along="SUBJ", nsim=50)
@@ -243,12 +232,20 @@ plot(powerCurveinteractsim)
 
 Assume you have only the resources to collect 30 kids (15 with ASD and 15 TDs). Identify the power for each relevant effect and discuss whether it's worth to run the study and why.
 
-Answer
+Answer:
+
+
+I look at the powerplots, and see if 30 participants are enough for anything.
 
 
 ```{r}
 
-#Eyeball or simulate 30 kids
+plot(powerCurveVISIT)
+plot(powerCurveADOS)
+plot(powerCurveVISIT_ADOS)
+plot(powerCurvetypes_CHI)
+plot(powerCurveMOT_MLU)
+plot(powerCurveverbalIQ)
 
 ```
 

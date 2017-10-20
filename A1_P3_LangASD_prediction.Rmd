@@ -117,12 +117,14 @@ modelr:: rmse(Model_Origin, d)
 #Test model on testing data: root mean square error
 modelr:: rmse(Model_Origin, dt)
 
-#Test prediction uncertainty
+#(OPTIONAL) Test prediction uncertainty
 predictInterval(Model_Origin, dt)
 
 
 #Create basic model
 Model_0 = lmer(CHI_MLU ~ VISIT*Diagnosis + (1+VISIT|SUBJ), d)
+
+summary(Model_0)
 
 ```
 
@@ -234,7 +236,7 @@ Model_Final = lmer(CHI_MLU ~ VISIT*ADOS + MOT_MLU + types_CHI + verbalIQ + (1+VI
 d_Bernie = subset(dt, SUBJ == 2)
 
 
-#Get average verbalIQ for TD kids (subset for kids with TD, choose verbalIQ, get mean)
+#Get average values for TD kids (subset for kids with TD, choose verbalIQ, get mean)
 avg_verbalIQ = mean(subset(d, Diagnosis == "TD")$verbalIQ)
 avg_CHI_MLU = mean(subset(d, Diagnosis == "TD")$CHI_MLU)
 avg_ADOS = mean(subset(d, Diagnosis == "TD")$ADOS)
@@ -257,8 +259,8 @@ Joe_scores = predict(Model_Final, AvgJoe, allow.new.levels=T)
 
 #Check numerical difference between Bernie and Average Joe
    # - Plot them together
-plot(x, d_Bernie$CHI_MLU, ylim = c(1,4)) +
-lines(x, Joe_scores)
+plot( d_Bernie$CHI_MLU, ylim = c(1,4)) +
+lines( Joe_scores)
 
 #Define absolute distance between Bernie and AvgJoe
 d_Bernie$CHI_MLU - Joe_scores
